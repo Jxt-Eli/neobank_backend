@@ -18,6 +18,7 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)    # subsequent updates and changes in database info and last account usage times
 
 
+
 # ======================transaction model ========================
 
 class Transaction(Base):
