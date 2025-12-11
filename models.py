@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Index, func
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime
 
@@ -16,7 +16,9 @@ class User(Base):
     password = Column(String(255))
     created_at = Column(DateTime, default=datetime.utcnow)                      # for first database entry, Immutable 
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)    # subsequent updates and changes in database info and last account usage times
-
+    __table_args__ = (
+        Index('ix_users_email_lower', func.lower(email), unique=True),
+    )
 
 
 # ======================transaction model ========================
