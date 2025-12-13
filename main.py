@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends
 from database import get_db
-from pydantic import BaseModel, Field #,  EmailStr 
+from pydantic import BaseModel, Field ,EmailStr 
 import httpx
 import time
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -67,7 +67,7 @@ def health_check():
     return {"status": "healthy"}
 
 class Login(BaseModel):
-    email: str          # HACK: JUST A TEMPORARY FIX SINCE WE WILL NEED EXTRA VALIDATION AND PIP INSTALLS TO WORK WITH EmailStr
+    email: EmailStr     # HACK: JUST A TEMPORARY FIX SINCE WE WILL NEED EXTRA VALIDATION AND PIP INSTALLS TO WORK WITH EmailStr
     password: str = Field(min_length=8, description='password must be 8 or more characters')
 
 @app.post("/login", status_code=200)
