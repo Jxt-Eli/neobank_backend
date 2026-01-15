@@ -42,7 +42,7 @@ Adjust keys to match your config.
 
 4. Run the app (development)
 ```bash
-uvicorn main:app --reload
+./launch.sh
 ```
 Open http://127.0.0.1:8000/docs for interactive API docs.
 
