@@ -3,8 +3,11 @@
 # 1. Go to the dir of this script
 cd "$(dirname "$0")"
 
-# 2. Activate the venv
+# 2. Activate the venv (for dev stage)
 # source myenv/bin/activate
 
-# 3. Run FastAPI with uvicorn
+# 3. Print something to show its not failed at this stage
+echo "Starting Backend........."
+
+# 4. Run FastAPI with uvicorn
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload

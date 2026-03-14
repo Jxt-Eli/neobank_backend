@@ -252,6 +252,7 @@ async def create_user(new_user: CreateUserRequest, db: AsyncSession = Depends(ge
         )
     )
     user_exists = exists.scalar_one_or_none()
+    
     if user_exists:
         raise HTTPException(status_code=400, detail='User exists already or details are being used for an existing account ')
     

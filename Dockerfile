@@ -24,16 +24,11 @@ RUN chown -R backend_container:devgroup /app
 # this prevenets attacks and priviledge escalation on the server
 USER backend_container
 
-# change launch script permissions
-RUN chmod +x launch.sh
-# activate venv
-
 
 # Expose port for api connection
+# NOTE: I'M NOT TOO CERTAIN WHETHER THIS IS FOR THE CONTAINER PORT OR THE HOST PORT
 EXPOSE 8000
 
-# commands to run
-CMD ["./launch.sh"]
 
 #Labels
 LABEL version="1.0.0"
