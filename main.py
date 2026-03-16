@@ -54,7 +54,7 @@ async def get_current_user(
 
 app = FastAPI()
 
-# ==============check app status and platform name ================
+''' ==============check app status and platform credentials ================'''
 @app.get("/")
 def get_status():
     return {
@@ -66,6 +66,9 @@ def get_status():
 def health_check():
     return {"status": "healthy"}
 
+
+
+''' ============== Login endpoint ================'''
 class Login(BaseModel):
     email: str          # HACK: JUST A TEMPORARY FIX SINCE WE WILL NEED EXTRA VALIDATION AND PIP INSTALLS TO WORK WITH EmailStr
     password: str = Field(min_length=8, description='password must be 8 or more characters')
@@ -99,7 +102,7 @@ async def login(detail: Login, db: AsyncSession = Depends(get_db)):
         'user_id': user_exists.user_id, 
         'email': user_exists.email, 
         'full_name': user_exists.full_name, 
-        }, 
+        },
     }
         
 
@@ -169,6 +172,7 @@ async def create_transfer(transfer: TransferRequest,
     await db.refresh(current_user)
     await db.refresh(new_transaction)
     
+    #   FIX: attend to "pending" on line 184
     return {
         "transaction":
         {
@@ -177,7 +181,7 @@ async def create_transfer(transfer: TransferRequest,
         "receiver_id": transfer.receiver_id,
         "amount": transfer.amount,
         "currency": transfer.currency, 
-        "status": "pending"
+            "status": "pending" #   HACK: must fetch info from database before returning transaction_ status
         },
         "sender": {'name': current_user.full_name, 'initial_balance': initial_sender_balance, 'remaining_balance': current_user.balance }, 
         "receiver": {'name': receiver.full_name, 'initial balance': initial_receiver_balance, 'remaining_balance': receiver.balance}
@@ -190,7 +194,7 @@ async def create_transfer(transfer: TransferRequest,
 
 
     
-# ==================get user transactions====================
+''' ==================get user transactions===================='''
 
 @app.get("/transactions")
 async def get_transactions(limit: int = 10, 
@@ -232,8 +236,7 @@ async def get_transactions(limit: int = 10,
 
 
 ''' ============================================ create new user endpoint ============================================='''
-# ---------POST ENDPOINT----------
-# add user to database (not too complete I'll improve it over time since we'll later deal with fetching and adding information to the DB instead of adding it to some mockup inside the codebase (which is making it more complicated))
+# WARNING: CHANGE USER ID TO USE UUID
 class CreateUserRequest(BaseModel):
     email: str
     full_name: str
@@ -269,12 +272,15 @@ async def create_user(new_user: CreateUserRequest, db: AsyncSession = Depends(ge
     await db.commit()
     await db.refresh(save_info)
     return {
-        "message": "user created successfully",
+    # WARNING: user id is using sequential numbers and is vulnerable to IDOR attacks 
+        "message": "user created successfully", 
         "email": new_user.email,
         "full_name": new_user.full_name,
         "phone": new_user.phone,
         "balance": new_user.initial_deposit
     }
+
+
 
 
 ''' ===========currency conversion (probably temporary) =============='''

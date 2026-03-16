@@ -1,28 +1,47 @@
-version: 1.0.0
 services:
 
   # database
   db:
-    image: 
-      postgres: 16.9
-    environments:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    image: postgres:16.9
+    environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    volumes_from:
-      - /var/lib/postgres/data
+    volumes:
+      - volume_1:/var/lib/postgresql/data # Named volume
 
   # backend
-  server_1.0:
+  backend:
     build: .
-    env_file:
-      - .env
-    depends_on:
-      -db
+    image: server:v1.0.1
     ports:
       - "8000:5000"
-    environments:
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+      alembic:
+        condition: service_completed_successfully
+    command: ./launch.sh
+
+  # MIGRATIONS
+  alembic:
+    build: .
+    image: server:v1.0.1
+    depends_on:
+      db:
+        condition: service_healthy
+    command: alembic upgrade head
+    environment: 
+      DATABASE_URL: ${DATABASE_URL}
 
 
-  volumes:
-      - postgres_data
+volumes:
+  volume_1:

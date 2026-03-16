@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 # source myenv/bin/activate
 
 # 3. Print something to show its not failed at this stage
-echo "Starting Backend........."
+echo "Starting Backend.........⏳"
 
 # 4. Run FastAPI with uvicorn
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+exec uvicorn main:app --host 0.0.0.0 --port 5000 --reload

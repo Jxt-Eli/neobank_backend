@@ -8,7 +8,7 @@ Base = declarative_base()
 class User(Base):
 	__tablename__ = "users"
 	user_id = Column(Integer, primary_key=True, index=True)
-	email = Column(String(40), index=True, unique=True)	 #TODO: Remove the second 'index=True' in production code. the one in the __table_args__ does what the one here does as well
+	email = Column(String(40), unique=True)
 	balance = Column(Float)
 	phone = Column(String(25), index=True, unique=True)
 	currency = Column(String(6))
@@ -36,6 +36,6 @@ class Transaction(Base):
 	remaining_balance = Column(Float)
 	timestamp = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 	status = Column(String)									 # eg. pending, completed, failed, blocked, sent,  restricted etc
-	payment_method = Column(String, index=True) # eg, mastercard, account, visa card etc. --NOTE: not really sure about this whether I should index it 
+	payment_method = Column(String) # eg, mastercard, account, visa card etc. --NOTE: would deal with this later.
 	sender = relationship(User, foreign_keys=[sender_id])   
 	receiver = relationship(User, foreign_keys=[receiver_id])
