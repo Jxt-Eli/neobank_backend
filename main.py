@@ -282,6 +282,7 @@ async def create_user(new_user: CreateUserRequest, db: AsyncSession = Depends(ge
 
 
 
+# BUG: CONTAINER CAN'T CONNECT TO EXTERNAL URLS. (WILL FIX LATER. MAYBE API KEYS RATHER OR SUMN)
 
 ''' ===========currency conversion (probably temporary) =============='''
 @app.get("/convert/{amount}")

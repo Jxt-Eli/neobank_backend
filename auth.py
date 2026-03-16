@@ -1,4 +1,4 @@
-from passlib.context import CryptContext
+from passlib.context import CryptContext # WARNING: passlib is unmaintained (remove and use bcrypt directly)
 import hashlib
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
@@ -28,7 +28,7 @@ def verify_password(plain_password: str, hashed_password: str)-> bool:
 
 # ---JWT configuration---
 
-SECRET_KEY = os.getenv("SECRET_KEY")  # HACK: TEMPORARY FIX, WILL USE ENVIRONMENT VARIABLES LATER
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 

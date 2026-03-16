@@ -1,5 +1,4 @@
 services:
-
   # database
   db:
     healthcheck:
