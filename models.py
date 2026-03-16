@@ -11,14 +11,14 @@ class User(Base):
 	email = Column(String(40), unique=True)
 	balance = Column(Float)
 	phone = Column(String(25), index=True, unique=True)
-	currency = Column(String(6)) 
+	currency = Column(String(6))
 	full_name = Column(String(60))
 	password = Column(String(255))
-	created_at = Column(DateTime, default=datetime.utcnow)                      # for first database entry, Immutable 
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)    # subsequent updates and changes in database info and last account usage times
+	created_at = Column(DateTime, default=datetime.utcnow)  # logs first database entry, Immutable 
+	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)	# subsequent updates and changes in database info and last account usage times
 
 	__table_args__ = (
-	    Index('ix_users_email_lower', func.lower(email), unique=True),
+		Index('ix_users_email_lower', func.lower(email), unique=True),
 	)
 
 
@@ -35,7 +35,7 @@ class Transaction(Base):
 	initial_balance = Column(Float)
 	remaining_balance = Column(Float)
 	timestamp = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-	status = Column(String)                                     # eg. pending, completed, failed, blocked, sent,  restricted etc
-	payment_method = Column(String, index=True) # eg, mastercard, account, visa card etc. --NOTE: not really sure about this whether I should index it 
+	status = Column(String) # eg. pending, completed, failed, blocked, sent,  restricted etc
+	payment_method = Column(String) # eg, mastercard, account, visa card etc. --NOTE: would deal with this later.
 	sender = relationship(User, foreign_keys=[sender_id])   
 	receiver = relationship(User, foreign_keys=[receiver_id])

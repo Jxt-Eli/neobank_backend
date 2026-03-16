@@ -54,7 +54,7 @@ async def get_current_user(
 
 app = FastAPI()
 
-# ==============check app status and platform name ================
+''' ==============check app status and platform credentials ================'''
 @app.get("/")
 def get_status():
 	return {
@@ -66,6 +66,9 @@ def get_status():
 def health_check():
 	return {"status": "healthy"}
 
+
+
+''' ============== Login endpoint ================'''
 class Login(BaseModel):
 	email: EmailStr     # HACK: JUST A TEMPORARY FIX SINCE WE WILL NEED EXTRA VALIDATION AND PIP INSTALLS TO WORK WITH EmailStr
 	password: str = Field(min_length=8, description='password must be 8 or more characters')
@@ -84,24 +87,24 @@ async def login(detail: Login, db: AsyncSession = Depends(get_db)):
    
 	pwd_check_result = verify_password(detail.password, user_exists.password)
 
-	if not pwd_check_result:
-	    raise HTTPException(status_code=401, detail="Invalid email or password")
-	
-	access_token = create_access_token(
-	    data={"sub": str(user_exists.user_id), 'email': user_exists.email}
-	)
-	return {
-	    'message': 'login successful', 
-	    'access_token': access_token, 
-	    'token_type': 'bearer', 
-	    'user': 
-	    {
-	    'user_id': user_exists.user_id, 
-	    'email': user_exists.email, 
-	    'full_name': user_exists.full_name, 
-	    }, 
-	}
-	    
+    if not pwd_check_result:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    access_token = create_access_token(
+        data={"sub": str(user_exists.user_id), 'email': user_exists.email}
+    )
+    return {
+        'message': 'login successful', 
+        'access_token': access_token, 
+        'token_type': 'bearer', 
+        'user': 
+        {
+        'user_id': user_exists.user_id, 
+        'email': user_exists.email, 
+        'full_name': user_exists.full_name, 
+        },
+    }
+        
 
 '''=====================check user balance with user id==========================='''
 @app.get("/balance")
@@ -151,46 +154,46 @@ async def create_transfer(transfer: TransferRequest,
 	
 	# create transaction record
 
-	new_transaction = Transaction(
-	    sender_id = current_user.user_id, 
-	    receiver_id = transfer.receiver_id, 
-	    amount = transfer.amount,
-	    currency = transfer.currency, 
-	    transaction_id = transaction_id, 
-	    initial_balance = initial_sender_balance,  
-	    remaining_balance = current_user.balance, 
-	    status = "completed"
-	)
-	db.add(receiver)
-	db.add(current_user)
-	db.add(new_transaction)
-	await db.commit()
-	await db.refresh(receiver)
-	await db.refresh(current_user)
-	await db.refresh(new_transaction)
-	
-	return {
-	    "transaction":
-	    {
-	    "transaction_id": transaction_id, 
-	    "sender_id": current_user.user_id,
-	    "receiver_id": transfer.receiver_id,
-	    "amount": transfer.amount,
-	    "currency": transfer.currency, 
-	    "status": "pending"
-	    },
-	    "sender": {'name': current_user.full_name, 'initial_balance': initial_sender_balance, 'remaining_balance': current_user.balance }, 
-	    "receiver": {'name': receiver.full_name, 'initial balance': initial_receiver_balance, 'remaining_balance': receiver.balance}
-	    
-	}
+    new_transaction = Transaction(
+        sender_id = current_user.user_id, 
+        receiver_id = transfer.receiver_id, 
+        amount = transfer.amount,
+        currency = transfer.currency, 
+        transaction_id = transaction_id, 
+        initial_balance = initial_sender_balance,  
+        remaining_balance = current_user.balance, 
+        status = "completed"
+    )
+    db.add(receiver)
+    db.add(current_user)
+    db.add(new_transaction)
+    await db.commit()
+    await db.refresh(receiver)
+    await db.refresh(current_user)
+    await db.refresh(new_transaction)
+    
+    #   FIX: attend to "pending" on line 184
+    return {
+        "transaction":
+        {
+        "transaction_id": transaction_id, 
+        "sender_id": current_user.user_id,
+        "receiver_id": transfer.receiver_id,
+        "amount": transfer.amount,
+        "currency": transfer.currency, 
+            "status": "pending" #   HACK: must fetch info from database before returning transaction_ status
+        },
+        "sender": {'name': current_user.full_name, 'initial_balance': initial_sender_balance, 'remaining_balance': current_user.balance }, 
+        "receiver": {'name': receiver.full_name, 'initial balance': initial_receiver_balance, 'remaining_balance': receiver.balance}
+        
+    }
 
 
 
 
 
 
-	
-# ==================get user transactions====================
+''' ==================get user transactions===================='''
 
 @app.get("/transactions")
 async def get_transactions(limit: int = 10, 
@@ -232,8 +235,7 @@ async def get_transactions(limit: int = 10,
 
 
 ''' ============================================ create new user endpoint ============================================='''
-# ---------POST ENDPOINT----------
-# add user to database (not too complete I'll improve it over time since we'll later deal with fetching and adding information to the DB instead of adding it to some mockup inside the codebase (which is making it more complicated))
+# WARNING: CHANGE USER ID TO USE UUID
 class CreateUserRequest(BaseModel):
 	email: str
 	full_name: str
@@ -243,38 +245,43 @@ class CreateUserRequest(BaseModel):
 
 @app.post("/users", status_code=201)
 async def create_user(new_user: CreateUserRequest, db: AsyncSession = Depends(get_db)):
-	exists = await db.execute(
-	    select(User).where(
-	        or_(
-	            User.email == new_user.email, 
-	            User.phone == new_user.phone, 
-	        )
-	    )
-	)
-	user_exists = exists.scalar_one_or_none()
-	if user_exists:
-	    raise HTTPException(status_code=400, detail='User exists')
-	
-	hashed_pwd = hash_password(new_user.password)   
+    exists = await db.execute(
+        select(User).where(
+            or_(
+                User.email == new_user.email, 
+                User.phone == new_user.phone, 
+            )
+        )
+    )
+    user_exists = exists.scalar_one_or_none()
+    
+    if user_exists:
+        raise HTTPException(status_code=400, detail='User exists already or details are being used for an existing account ')
+    
+    hashed_pwd = hash_password(new_user.password)   
 
-	save_info = User(
-	    email = new_user.email, 
-	    balance = new_user.initial_deposit, 
-	    phone = new_user.phone, 
-	    full_name = new_user.full_name, 
-	    password = hashed_pwd
-	)
-	db.add(save_info)
-	await db.commit()
-	await db.refresh(save_info)
-	return {
-	    "message": "user created successfully",
-	    "email": new_user.email,
-	    "full_name": new_user.full_name,
-	    "phone": new_user.phone,
-	    "balance": new_user.initial_deposit
-	}
+    save_info = User(
+        email = new_user.email, 
+        balance = new_user.initial_deposit, 
+        phone = new_user.phone, 
+        full_name = new_user.full_name, 
+        password = hashed_pwd
+    )
+    db.add(save_info)
+    await db.commit()
+    await db.refresh(save_info)
+    return {
+    # WARNING: user id is using sequential numbers and is vulnerable to IDOR attacks 
+        "message": "user created successfully", 
+        "email": new_user.email,
+        "full_name": new_user.full_name,
+        "phone": new_user.phone,
+        "balance": new_user.initial_deposit
+    }
 
+
+
+# BUG: CONTAINER CAN'T CONNECT TO EXTERNAL URLS. (WILL FIX LATER. MAYBE API KEYS RATHER OR SUMN)
 
 ''' ===========currency conversion (probably temporary) =============='''
 @app.get("/convert/{amount}")
