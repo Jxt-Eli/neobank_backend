@@ -10,4 +10,7 @@ cd "$(dirname "$0")"
 echo "Starting Backend.........⏳"
 
 # 4. Run FastAPI with uvicorn NOTE: exec is used to make the process run as a parent process inthe container
-exec uvicorn main:app --host 0.0.0.0 --port 5000 --reload
+
+# uvicorn main:app --host 0.0.0.0 --port 8000 --reload # dev
+
+exec uvicorn main:app --host 0.0.0.0 --port 5000 --reload # prod

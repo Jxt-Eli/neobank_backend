@@ -27,7 +27,7 @@ class User(Base):
 class Transaction(Base):
 	__tablename__ = "transactions"
 	sender_id = Column(Integer, ForeignKey("users.user_id"))
-	receiver_id = Column(Integer, ForeignKey("users.user_id"))
+	receiver_email = Column(String(40), ForeignKey("users.email"))
 	amount = Column(Float)
 	transaction_id = Column(String(60), primary_key=True, index=True)
 	transaction_type = Column(String(15)) # eg, deposit, withdrawal, transfer etc
@@ -38,4 +38,4 @@ class Transaction(Base):
 	status = Column(String)									 # eg. pending, completed, failed, blocked, sent,  restricted etc
 	payment_method = Column(String) # eg, mastercard, account, visa card etc. --NOTE: would deal with this later.
 	sender = relationship(User, foreign_keys=[sender_id])   
-	receiver = relationship(User, foreign_keys=[receiver_id])
+	receiver = relationship(User, foreign_keys=[receiver_email])
