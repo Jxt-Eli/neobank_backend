@@ -137,7 +137,7 @@ async def create_transfer(transfer: TransferRequest,
     if transfer.amount > current_user.balance:
         raise HTTPException(status_code=400, detail= "Insufficient balance")    
 
-    print(f"------------->amount: {transfer.amount}... ") #email: {transfer.email}") # INFO: DEBUG LINE 
+    # print(f"------------->amount: {transfer.amount}... ") #email: {transfer.email}") # INFO: DEBUG LINE 
     
     receiver_result = await db.execute(select(User).where(User.email == transfer.receiver_email)) 
     receiver = receiver_result.scalar_one_or_none()
@@ -150,6 +150,12 @@ async def create_transfer(transfer: TransferRequest,
     # update balances
     current_user.balance -= transfer.amount
     receiver.balance += transfer.amount
+
+    # Logic to determine transasction status
+    if initial_sender_balance > current_user.balance:
+        status = "successful"
+    else:
+        status = "pending"
 
     # generate unique transaction id for the new_transaction class and for function return
     transaction_id = str(uuid.uuid4())
@@ -183,7 +189,7 @@ async def create_transfer(transfer: TransferRequest,
         "receiver_email": transfer.receiver_email,
         "amount": transfer.amount,
         "currency": transfer.currency, 
-            "status": "pending" #   HACK: must fetch info from database before returning transaction_ status
+        "status": status
         },
         "sender": {'name': current_user.full_name, 'initial_balance': initial_sender_balance, 'remaining_balance': current_user.balance }, 
         "receiver": {'name': receiver.full_name, 'initial balance': initial_receiver_balance, 'remaining_balance': receiver.balance}
@@ -262,8 +268,10 @@ async def create_user(new_user: CreateUserRequest, db: AsyncSession = Depends(ge
         raise HTTPException(status_code=400, detail='User exists already or details are being used for an existing account ')
     
     hashed_pwd = hash_password(new_user.password)   
+    user_id = str(uuid.uuid4())
 
     save_info = User(
+        user_id = user_id, 
         email = new_user.email, 
         balance = new_user.initial_deposit, 
         phone = new_user.phone, 
@@ -276,6 +284,7 @@ async def create_user(new_user: CreateUserRequest, db: AsyncSession = Depends(ge
     return {
     # WARNING: user id is using sequential numbers and is vulnerable to IDOR attacks 
         "message": "user created successfully", 
+        "user_id" : user_id, 
         "email": new_user.email,
         "full_name": new_user.full_name,
         "phone": new_user.phone,
