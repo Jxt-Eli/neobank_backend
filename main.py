@@ -15,33 +15,33 @@ import uuid
 
 
 
-# JWT DEPENDENCY FUNCTION
+# JWT DEPENDENCY FUNCTION--- NOTE: NEEDS A REFACTOR   
 
 security = HTTPBearer()
 
 async def get_current_user(
-        credentials: HTTPAuthorizationCredentials = Depends(security), 
-        db: AsyncSession = Depends(get_db)
+	    credentials: HTTPAuthorizationCredentials = Depends(security), 
+	    db: AsyncSession = Depends(get_db)
 ):
-    
-    '''dependency that extracts and validates the current user from the JWT token'''
-    
-    #getting token directly from credentials
-    token = credentials.credentials
+	
+	'''dependency that extracts and validates the current user from the JWT token'''
+	
+	#getting token directly from credentials
+	token = credentials.credentials
 
-    # verify token and user_id from database
-    user_id = verify_access_token(token)
-    if not user_id:
-         raise HTTPException(status_code=401, detail='invalid or expired token')
-    
-    # fetch user from database for comparison
-    result = await db.execute(select(User).where(User.user_id == user_id))
-    user = result.scalar_one_or_none()
+	# verify token and user_id from database
+	user_id = verify_access_token(token)
+	if not user_id:
+	     raise HTTPException(status_code=401, detail='invalid or expired token')
+	
+	# fetch user from database for comparison
+	result = await db.execute(select(User).where(User.user_id == user_id))
+	user = result.scalar_one_or_none()
 
-    if not user:
-        raise HTTPException(status_code=401, detail='user not found')
-    
-    return user
+	if not user:
+	    raise HTTPException(status_code=401, detail='user not found')
+	
+	return user
 
 
 
@@ -57,21 +57,21 @@ app = FastAPI()
 ''' ==============check app status and platform credentials ================'''
 @app.get("/")
 def get_status():
-    return {
-        "name": "Quantevo Ledgers",
-        "status": "operational",
-        "version": "0.1.0"
-    }
+	return {
+	    "name": "Quantevo Ledgers",
+	    "status": "operational",
+	    "version": "0.1.0"
+	}
 @app.get("/health")
 def health_check():
-    return {"status": "healthy"}
+	return {"status": "healthy"}
 
 
 
 ''' ============== Login endpoint ================'''
 class Login(BaseModel):
-    email: EmailStr     # HACK: JUST A TEMPORARY FIX SINCE WE WILL NEED EXTRA VALIDATION AND PIP INSTALLS TO WORK WITH EmailStr
-    password: str = Field(min_length=8, description='password must be 8 or more characters')
+	email: EmailStr     # HACK: JUST A TEMPORARY FIX SINCE WE WILL NEED EXTRA VALIDATION AND PIP INSTALLS TO WORK WITH EmailStr
+	password: str = Field(min_length=8, description='password must be 8 or more characters')
 
 @app.post("/login", status_code=200)
 async def login(detail: Login, db: AsyncSession = Depends(get_db)):
@@ -86,7 +86,7 @@ async def login(detail: Login, db: AsyncSession = Depends(get_db)):
     if not user_exists:
         raise HTTPException(status_code=401, detail='Invalid email or password')
    
-    pwd_check_result = verify_password(detail.password, user_exists.password)
+	pwd_check_result = verify_password(detail.password, user_exists.password)
 
     if not pwd_check_result:
         raise HTTPException(status_code=401, detail="Invalid email or password")
@@ -110,11 +110,11 @@ async def login(detail: Login, db: AsyncSession = Depends(get_db)):
 '''=====================check user balance==========================='''
 @app.get("/balance")
 async def get_user_balance(current_user: User = Depends(get_current_user)):
-    return{
-        "name": current_user.full_name, 
-        "balance": current_user.balance, 
-        "currency": current_user.currency, 
-    }
+	return{
+	    "name": current_user.full_name, 
+	    "balance": current_user.balance, 
+	    "currency": current_user.currency, 
+	}
 
 
 
@@ -124,19 +124,27 @@ async def get_user_balance(current_user: User = Depends(get_current_user)):
 # =====================transfer endpoint===========================
 
 class TransferRequest(BaseModel):
+<<<<<<< HEAD
     receiver_email: EmailStr
     amount: float
     currency: str
+=======
+	receiver_id: int
+	amount: float
+	# transaction_id: int
+	currency: str
+>>>>>>> main
 
 @app.post("/transfer")
 async def create_transfer(transfer: TransferRequest, 
-                          db: AsyncSession = Depends(get_db), 
-                          current_user: User = Depends(get_current_user)
-                          ):
+	                      db: AsyncSession = Depends(get_db), 
+	                      current_user: User = Depends(get_current_user)
+	                      ):
 
-    if transfer.amount > current_user.balance:
-        raise HTTPException(status_code=400, detail= "Insufficient balance")    
+	if transfer.amount > current_user.balance:
+	    raise HTTPException(status_code=400, detail= "Insufficient balance")    
 
+<<<<<<< HEAD
     # print(f"------------->amount: {transfer.amount}... ") #email: {transfer.email}") # INFO: DEBUG LINE 
     
     receiver_result = await db.execute(select(User).where(User.email == transfer.receiver_email)) 
@@ -146,11 +154,21 @@ async def create_transfer(transfer: TransferRequest,
     
     initial_sender_balance  = current_user.balance
     initial_receiver_balance = receiver.balance
+=======
+	receiver_result = await db.execute(select(User).where(User.user_id == transfer.receiver_id)) 
+	receiver = receiver_result.scalar_one_or_none()
+	if not receiver:
+	    raise HTTPException(status_code=404, detail= 'receipient not found')
+	
+	initial_sender_balance  = current_user.balance
+	initial_receiver_balance = receiver.balance
+>>>>>>> main
 
-    # update balances
-    current_user.balance -= transfer.amount
-    receiver.balance += transfer.amount
+	# update balances
+	current_user.balance -= transfer.amount
+	receiver.balance += transfer.amount
 
+<<<<<<< HEAD
     # Logic to determine transasction status
     if initial_sender_balance > current_user.balance:
         status = "successful"
@@ -161,6 +179,12 @@ async def create_transfer(transfer: TransferRequest,
     transaction_id = str(uuid.uuid4())
     
     # create transaction record
+=======
+	# generate unique transaction id for the new_transaction class and for function return
+	transaction_id = str(uuid.uuid4())
+	
+	# create transaction record
+>>>>>>> main
 
     new_transaction = Transaction(
         sender_id = current_user.user_id, 
@@ -201,44 +225,43 @@ async def create_transfer(transfer: TransferRequest,
 
 
 
-    
 ''' ==================get user transactions===================='''
 
 @app.get("/transactions")
 async def get_transactions(limit: int = 10, 
-                           offset: int = 0, #user_id: int = None, 
-                           db: AsyncSession = Depends(get_db), 
-                           current_user: User = Depends(get_current_user)):
-    query = select(Transaction)
-    if current_user:
-        query = query.where(
-            or_(
-                Transaction.sender_id == current_user.user_id, 
-                )
-            )
+	                       offset: int = 0, #user_id: int = None, 
+	                       db: AsyncSession = Depends(get_db), 
+	                       current_user: User = Depends(get_current_user)):
+	query = select(Transaction)
+	if current_user:
+	    query = query.where(
+	        or_(
+	            Transaction.sender_id == current_user.user_id, 
+	            )
+	        )
 
-    query = query.limit(limit).offset(offset)
-    
-    result = await db.execute(query)
-    transactions = result.scalars().all()
+	query = query.limit(limit).offset(offset)
+	
+	result = await db.execute(query)
+	transactions = result.scalars().all()
 
-    return{
-        'limit': limit,
-        'offset': offset,
-        'user_id': current_user.user_id,
-        'message': f"Fetching {limit} transactions starting from {offset}", 
-        'count': len(transactions), 
-        'transactions': [
-            {
-            'transaction_id': t.transaction_id, 
-            'receiver_id': t.receiver_id, 
-            'amount': t.amount, 
-            'timestamp': t.timestamp.isoformat(), 
-            'status': t.status, 
-            }
-            for t in transactions
-        ]
-    }
+	return{
+	    'limit': limit,
+	    'offset': offset,
+	    'user_id': current_user.user_id,
+	    'message': f"Fetching {limit} transactions starting from {offset}", 
+	    'count': len(transactions), 
+	    'transactions': [
+	        {
+	        'transaction_id': t.transaction_id, 
+	        'receiver_id': t.receiver_id, 
+	        'amount': t.amount, 
+	        'timestamp': t.timestamp.isoformat(), 
+	        'status': t.status, 
+	        }
+	        for t in transactions
+	    ]
+	}
 
 
 
@@ -246,11 +269,19 @@ async def get_transactions(limit: int = 10,
 ''' ============================================ create new user endpoint ============================================='''
 # WARNING: CHANGE USER ID TO USE UUID
 class CreateUserRequest(BaseModel):
+<<<<<<< HEAD
     email: EmailStr
     full_name: str
     initial_deposit: float = Field(gt=0, description="Must be greater than 0")
     password: str = Field(min_length=8, description="password must exceed 8 characters")
     phone: str
+=======
+	email: str
+	full_name: str
+	initial_deposit: float = Field(gt=0, description="Must be greater than 0")
+	password: str = Field(min_length=8, description="password must exceed 8 characters")
+	phone: str
+>>>>>>> main
 
 @app.post("/users", status_code=201)
 async def create_user(new_user: CreateUserRequest, db: AsyncSession = Depends(get_db)):
@@ -298,27 +329,27 @@ async def create_user(new_user: CreateUserRequest, db: AsyncSession = Depends(ge
 ''' ===========currency conversion (probably temporary) =============='''
 @app.get("/convert/{amount}")
 async def convert_currency(amount: float, from_currency: str = "USD", to_currency: str = "GHS"):
-    # Call a real exchange rate API
-    async with httpx.AsyncClient() as client:
-        start = time.time()
-        response = await client.get(
-            f"https://api.exchangerate-api.com/v4/latest/{from_currency}"
-        )
-        data = response.json()
-        end = time.time()
-        print(end - start)
-    if to_currency not in data["rates"]:
-        raise HTTPException(status_code=400, detail="Unsupported currency")
-    
-    # Get the conversion rate
-    rate = data["rates"][to_currency]
-    converted_amount = amount * rate
-    time_taken =  (f" total time taken: {end - start:.2f}s")
-    print(time_taken)
-    return {
-        "original_amount": amount,
-        "from_currency": from_currency,
-        "to_currency": to_currency,
-        "exchange_rate": rate,
-        "converted_amount": converted_amount,
-    }
+	# Call a real exchange rate API
+	async with httpx.AsyncClient() as client:
+	    start = time.time()
+	    response = await client.get(
+	        f"https://api.exchangerate-api.com/v4/latest/{from_currency}"
+	    )
+	    data = response.json()
+	    end = time.time()
+	    print(end - start)
+	if to_currency not in data["rates"]:
+	    raise HTTPException(status_code=400, detail="Unsupported currency")
+	
+	# Get the conversion rate
+	rate = data["rates"][to_currency]
+	converted_amount = amount * rate
+	time_taken =  (f" total time taken: {end - start:.2f}s")
+	print(time_taken)
+	return {
+	    "original_amount": amount,
+	    "from_currency": from_currency,
+	    "to_currency": to_currency,
+	    "exchange_rate": rate,
+	    "converted_amount": converted_amount,
+	}
