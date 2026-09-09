@@ -37,7 +37,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: alembic revision --autogenerate&&alembic upgrade head
+    command: alembic revision --autogenerate && alembic upgrade head
     environment: 
       DATABASE_URL: ${DATABASE_URL}
 
