@@ -18,7 +18,7 @@ services:
   # backend
   backend:
     build: .
-    image: server:v1.0.1
+    image: server:v2.0.0
     ports:
       - "8000:5000"
     environment:
@@ -37,7 +37,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: alembic upgrade head
+    command: alembic revision --autogenerate && alembic upgrade head
     environment: 
       DATABASE_URL: ${DATABASE_URL}
 

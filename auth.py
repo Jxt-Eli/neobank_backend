@@ -47,6 +47,6 @@ def verify_access_token(token: str):
 		user_id: str = payload.get("sub")
 		if user_id is None:
 			return None
-		return int(user_id)
+		return str(user_id)
 	except JWTError:
 		return None

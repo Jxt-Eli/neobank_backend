@@ -36,6 +36,6 @@ EXPOSE 5000
 
 
 #Labels
-LABEL version="1.0.0"
-LABEL description="Node.js application Docker image"
+LABEL version="2.0.0"
+LABEL description="neobank backend application Docker image"
 LABEL maintainer="Eli"

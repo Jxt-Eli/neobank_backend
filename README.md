@@ -12,6 +12,9 @@ Minimal FastAPI backend for a neobank-style service — user auth, balances, tra
 - Python 3.11+ (tested)
 - PostgreSQL (recommended) or other DB supported by SQLAlchemy async drivers
 - Linux environment (development commands below use bash)
+- Alembic (1.18+)
+- Docker
+- Docker-compose
 
 ## Quick start
 
@@ -25,11 +28,9 @@ git clone <repo-url> && cd neobank-backend
 python -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-# if a requirements.txt exists:
 pip install -r requirements.txt
-# otherwise (typical dependencies)
-pip install fastapi uvicorn httpx sqlalchemy asyncpg pydantic python-jose[cryptography]
 ```
+
 
 3. Environment
 Create a `.env` file at project root (dotenv format). Example:
