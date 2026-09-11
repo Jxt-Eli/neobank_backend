@@ -124,16 +124,9 @@ async def get_user_balance(current_user: User = Depends(get_current_user)):
 # =====================transfer endpoint===========================
 
 class TransferRequest(BaseModel):
-<<<<<<< HEAD
     receiver_email: EmailStr
     amount: float
     currency: str
-=======
-	receiver_id: int
-	amount: float
-	# transaction_id: int
-	currency: str
->>>>>>> main
 
 @app.post("/transfer")
 async def create_transfer(transfer: TransferRequest, 
@@ -144,7 +137,6 @@ async def create_transfer(transfer: TransferRequest,
 	if transfer.amount > current_user.balance:
 	    raise HTTPException(status_code=400, detail= "Insufficient balance")    
 
-<<<<<<< HEAD
     # print(f"------------->amount: {transfer.amount}... ") #email: {transfer.email}") # INFO: DEBUG LINE 
     
     receiver_result = await db.execute(select(User).where(User.email == transfer.receiver_email)) 
@@ -154,21 +146,11 @@ async def create_transfer(transfer: TransferRequest,
     
     initial_sender_balance  = current_user.balance
     initial_receiver_balance = receiver.balance
-=======
-	receiver_result = await db.execute(select(User).where(User.user_id == transfer.receiver_id)) 
-	receiver = receiver_result.scalar_one_or_none()
-	if not receiver:
-	    raise HTTPException(status_code=404, detail= 'receipient not found')
-	
-	initial_sender_balance  = current_user.balance
-	initial_receiver_balance = receiver.balance
->>>>>>> main
 
 	# update balances
 	current_user.balance -= transfer.amount
 	receiver.balance += transfer.amount
 
-<<<<<<< HEAD
     # Logic to determine transasction status
     if initial_sender_balance > current_user.balance:
         status = "successful"
@@ -179,13 +161,6 @@ async def create_transfer(transfer: TransferRequest,
     transaction_id = str(uuid.uuid4())
     
     # create transaction record
-=======
-	# generate unique transaction id for the new_transaction class and for function return
-	transaction_id = str(uuid.uuid4())
-	
-	# create transaction record
->>>>>>> main
-
     new_transaction = Transaction(
         sender_id = current_user.user_id, 
         receiver_email = transfer.receiver_email, 
@@ -269,19 +244,11 @@ async def get_transactions(limit: int = 10,
 ''' ============================================ create new user endpoint ============================================='''
 # WARNING: CHANGE USER ID TO USE UUID
 class CreateUserRequest(BaseModel):
-<<<<<<< HEAD
     email: EmailStr
     full_name: str
     initial_deposit: float = Field(gt=0, description="Must be greater than 0")
     password: str = Field(min_length=8, description="password must exceed 8 characters")
     phone: str
-=======
-	email: str
-	full_name: str
-	initial_deposit: float = Field(gt=0, description="Must be greater than 0")
-	password: str = Field(min_length=8, description="password must exceed 8 characters")
-	phone: str
->>>>>>> main
 
 @app.post("/users", status_code=201)
 async def create_user(new_user: CreateUserRequest, db: AsyncSession = Depends(get_db)):
